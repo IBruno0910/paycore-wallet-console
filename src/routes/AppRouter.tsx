@@ -5,6 +5,7 @@ import { DashboardPage } from "../features/dashboard/DashboardPage";
 import { AccountsPage } from "../features/accounts/AccountsPage";
 import { TransfersPage } from "../features/transfers/TransfersPage";
 import { TransactionsPage } from "../features/transactions/TransactionsPage";
+import { ProtectedRoute } from "./ProtectedRoute";
 import { paths } from "./paths";
 
 const router = createBrowserRouter([
@@ -13,24 +14,29 @@ const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: paths.dashboard,
-    element: <AppLayout />,
+    element: <ProtectedRoute />,
     children: [
       {
-        index: true,
-        element: <DashboardPage />,
-      },
-      {
-        path: paths.accounts,
-        element: <AccountsPage />,
-      },
-      {
-        path: paths.transfers,
-        element: <TransfersPage />,
-      },
-      {
-        path: paths.transactions,
-        element: <TransactionsPage />,
+        path: paths.dashboard,
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            element: <DashboardPage />,
+          },
+          {
+            path: paths.accounts,
+            element: <AccountsPage />,
+          },
+          {
+            path: paths.transfers,
+            element: <TransfersPage />,
+          },
+          {
+            path: paths.transactions,
+            element: <TransactionsPage />,
+          },
+        ],
       },
     ],
   },

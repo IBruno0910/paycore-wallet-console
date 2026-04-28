@@ -1,5 +1,6 @@
 import axios from "axios";
 import { env } from "../config/env";
+import { clearAuthSession, getAuthToken } from "../features/auth/auth.storage";
 
 export const apiClient = axios.create({
   baseURL: env.apiUrl,
@@ -10,7 +11,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("paycore_token");
+  const token = getAuthToken();
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -22,12 +23,8 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    const status = error.response?.status;
-
-    if (status === 401) {
-      localStorage.removeItem("paycore_token");
-      localStorage.removeItem("paycore_user");
-
+    if (error.response?.status === 401) {
+      clearAuthSession();
       window.location.href = "/login";
     }
 
