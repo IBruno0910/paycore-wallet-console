@@ -5,12 +5,21 @@ export type LoginCredentials = {
 
 export type AuthUser = {
   id: string;
+  firstName: string;
+  lastName: string;
   email: string;
   role: string;
   companyId?: string;
+  status?: string;
+  createdAt?: string;
 };
 
 export type LoginResponse = {
-  token: string;
-  user: AuthUser;
+  success: boolean;
+  message: string;
+  data: {
+    user: AuthUser;
+    accessToken: string;
+    refreshToken: string;
+  };
 };

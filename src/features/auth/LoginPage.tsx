@@ -8,8 +8,8 @@ import { saveAuthSession } from "./auth.storage";
 export function LoginPage() {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState("admin@paycore.com");
-  const [password, setPassword] = useState("123456");
+  const [email, setEmail] = useState("ignacio@example.com");
+  const [password, setPassword] = useState("Password123");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,9 +20,11 @@ export function LoginPage() {
     setError("");
 
     try {
-      const data = await login({ email, password });
+      const response = await login({ email, password });
 
-      saveAuthSession(data.token, data.user);
+      saveAuthSession(response.data.accessToken, response.data.user);
+      localStorage.setItem("paycore_refresh_token", response.data.refreshToken);
+
       navigate(paths.dashboard);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -47,7 +49,7 @@ export function LoginPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="admin@paycore.com"
+              placeholder="ignacio@example.com"
               required
             />
           </div>
