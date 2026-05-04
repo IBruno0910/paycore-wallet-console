@@ -1,73 +1,178 @@
-# React + TypeScript + Vite
+# 💳 Paycore Wallet Console
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interfaz web de una plataforma tipo PSP (Payment Service Provider) para gestión de transferencias, monitoreo y analytics en tiempo real.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## 🚀 Demo
 
-## React Compiler
+👉 Próximamente desplegado en Vercel
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🧠 Descripción
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Paycore Wallet Console es una aplicación frontend desarrollada en React que consume una API backend para simular un sistema financiero moderno.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Permite visualizar métricas, gestionar transferencias, monitorear alertas y analizar comportamiento operativo.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+---
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## ✨ Features
+
+### 🔐 Autenticación
+
+* Login con JWT
+* Persistencia de sesión
+* Manejo de errores de autenticación
+
+---
+
+### 💸 Transferencias
+
+* Listado de transferencias con paginación backend
+* Creación de transferencias
+* Estados:
+
+  * Pendiente
+  * Completada
+  * Fallida
+* Filtros por estado
+* Búsqueda por ID / descripción
+* Modal de detalle
+
+---
+
+### 📊 Dashboard
+
+* Métricas principales:
+
+  * Total de transferencias
+  * Volumen operado
+  * Tasa de éxito / fallo
+* Gráficos:
+
+  * Pie charts
+  * Bar charts
+  * Line chart (timeline)
+* Dual axis en timeline (cantidad + volumen)
+
+---
+
+### 🚨 Alertas
+
+* Alertas operativas
+* Smart alerts (insights)
+* Auto-refresh cada 10s
+* Toast notifications en nuevas alertas
+* Visualización de detalles técnicos
+
+---
+
+### 🎨 UX / UI
+
+* Skeleton loading (dashboard, transfers, alerts)
+* Persistencia de página en URL (`?page=2`)
+* Navegación con sidebar activo
+* Responsive design
+* Feedback visual de estados
+
+---
+
+## 🧱 Stack Tecnológico
+
+### Frontend
+
+* React + TypeScript
+* Vite
+* TailwindCSS
+* Recharts
+* React Router
+
+### Integración
+
+* Axios
+* API REST (Node.js + Express backend)
+
+---
+
+## ⚙️ Configuración
+
+### 1. Clonar el repositorio
+
+```bash
+git clone https://github.com/TU-USUARIO/paycore-wallet-console.git
+cd paycore-wallet-console
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 2. Instalar dependencias
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+---
+
+### 3. Variables de entorno
+
+Crear archivo `.env`:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+---
+
+### 4. Ejecutar proyecto
+
+```bash
+npm run dev
+```
+
+---
+
+## 🌐 Backend requerido
+
+Este frontend consume la API de:
+
+👉 Paycore Backend
+
+Debe estar corriendo en:
+
+```txt
+http://localhost:3000/api
+```
+
+---
+
+## 📡 Endpoints utilizados
+
+```http
+POST   /api/auth/login
+GET    /api/transfers?page=1&limit=10
+POST   /api/transfers
+GET    /api/accounts
+GET    /api/analytics/summary
+GET    /api/analytics/alerts
+GET    /api/analytics/smart-alerts
+```
+
+---
+
+## 🎯 Objetivo del proyecto
+
+Simular una aplicación real de gestión financiera, aplicando:
+
+* Arquitectura frontend escalable
+* Integración con backend paginado
+* UX moderna tipo SaaS
+* Visualización de datos
+
+---
+
+## 📌 Autor
+
+Ignacio Bruno
+Proyecto desarrollado como portfolio fullstack.
