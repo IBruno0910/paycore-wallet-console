@@ -3,7 +3,7 @@ import type { TransferStatus, Transfer } from "./transfers.types";
 import { CreateTransferForm } from "./CreateTransferForm";
 import { useState, useEffect } from "react";
 import { TransferDetailModal } from "./TransferDetailModal";
-
+import { Skeleton } from "../../components/feedback/skeleton";
 
 export function TransfersPage() {
   const { transfers, loading, error, refetch } = useTransfers();
@@ -38,7 +38,7 @@ useEffect(() => {
 }, [search, statusFilter]);
 
   if (loading) {
-    return <p className="text-slate-500">Cargando transferencias...</p>;
+    return <TransfersSkeleton />;
   }
 
   if (error) {
@@ -224,4 +224,29 @@ function formatDate(value: string) {
     dateStyle: "short",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+function TransfersSkeleton() {
+  return (
+    <section className="space-y-6">
+      <Skeleton className="h-20 w-full" />
+
+      <Skeleton className="h-56 w-full" />
+
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <Skeleton className="h-12" />
+          <Skeleton className="h-12" />
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+        <div className="space-y-3 p-4">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <Skeleton key={index} className="h-12 w-full" />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 }
