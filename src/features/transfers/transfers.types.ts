@@ -19,7 +19,8 @@ export type TransfersResponse = {
 export type CreateTransferPayload = {
   amount: number;
   description: string;
-  accountId?: string;
+  sourceAccountId: string;
+  destinationAccountId: string;
   idempotencyKey: string;
 };
 

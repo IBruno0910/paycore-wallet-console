@@ -1,5 +1,6 @@
 import { useTransfers } from "./useTransfers";
 import type { TransferStatus } from "./transfers.types";
+import { CreateTransferForm } from "./CreateTransferForm";
 
 export function TransfersPage() {
   const { transfers, loading, error, refetch } = useTransfers();
@@ -34,6 +35,8 @@ export function TransfersPage() {
           Gestión y monitoreo de transferencias de la PSP.
         </p>
       </header>
+
+      <CreateTransferForm onCreated={refetch} />
 
       {transfers.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">

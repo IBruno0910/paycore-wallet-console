@@ -9,7 +9,12 @@ export function useTransfers() {
   const [error, setError] = useState("");
 
   async function fetchTransfers() {
-    setLoading(true);
+    const isInitialLoad = transfers.length === 0;
+
+    if (isInitialLoad) {
+      setLoading(true);
+    }
+
     setError("");
 
     try {
