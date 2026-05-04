@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAlerts } from "./useAlerts";
+import { Skeleton } from "../../components/feedback/skeleton";
 
 export function AlertsPage() {
   const { alerts, smartAlerts, loading, error, refetch } = useAlerts();
@@ -35,7 +36,7 @@ export function AlertsPage() {
     previousTotalAlertsRef.current = totalAlerts;
   }, [alerts.length, smartAlerts.length]);
 
-  if (loading) return <p className="text-slate-500">Cargando alertas...</p>;
+  if (loading) return <AlertsSkeleton />;
 
   if (error) {
     return (
@@ -148,5 +149,56 @@ function AlertCard({
         {JSON.stringify(alert.details, null, 2)}
       </pre>
     </article>
+  );
+}
+
+function AlertsSkeleton() {
+  return (
+    <section className="space-y-8">
+      {/* Header */}
+      <Skeleton className="h-24 w-full rounded-2xl" />
+
+      {/* Alertas */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-40" />
+
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-2xl border border-slate-200 bg-white p-5"
+          >
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+
+            <Skeleton className="mt-3 h-5 w-48" />
+            <Skeleton className="mt-2 h-4 w-full" />
+            <Skeleton className="mt-4 h-20 w-full" />
+          </div>
+        ))}
+      </div>
+
+      {/* Smart alerts */}
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-52" />
+
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-2xl border border-slate-200 bg-white p-5"
+          >
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-12" />
+            </div>
+
+            <Skeleton className="mt-3 h-5 w-48" />
+            <Skeleton className="mt-2 h-4 w-full" />
+            <Skeleton className="mt-4 h-20 w-full" />
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
