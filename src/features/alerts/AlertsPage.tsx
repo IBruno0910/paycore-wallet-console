@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAlerts } from "./useAlerts";
 
 export function AlertsPage() {
   const { alerts, smartAlerts, loading, error, refetch } = useAlerts();
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [toastMessage, setToastMessage] = useState("");
+  const previousTotalAlertsRef = useRef<number | null>(null);
 
   useEffect(() => {
     setLastUpdated(new Date());
@@ -12,16 +13,26 @@ export function AlertsPage() {
 
   useEffect(() => {
     const totalAlerts = alerts.length + smartAlerts.length;
+    const previousTotalAlerts = previousTotalAlertsRef.current;
 
-    if (totalAlerts === 0) return;
+    if (previousTotalAlerts === null) {
+      previousTotalAlertsRef.current = totalAlerts;
+      return;
+    }
 
-    setToastMessage(`Sistema monitoreado: ${totalAlerts} alertas activas`);
+    if (totalAlerts > previousTotalAlerts) {
+      setToastMessage(`Total actual: ${totalAlerts} alertas activas`);
 
-    const timeout = setTimeout(() => {
-      setToastMessage("");
-    }, 4000);
+      const timeout = setTimeout(() => {
+        setToastMessage("");
+      }, 3500);
 
-    return () => clearTimeout(timeout);
+      previousTotalAlertsRef.current = totalAlerts;
+
+      return () => clearTimeout(timeout);
+    }
+
+    previousTotalAlertsRef.current = totalAlerts;
   }, [alerts.length, smartAlerts.length]);
 
   if (loading) return <p className="text-slate-500">Cargando alertas...</p>;
@@ -84,8 +95,19 @@ export function AlertsPage() {
         </div>
       </div>
       {toastMessage && (
-        <div className="fixed right-6 top-6 z-50 rounded-2xl border border-slate-200 bg-slate-950 px-5 py-4 text-sm font-medium text-white shadow-xl">
-          {toastMessage}
+        <div className="fixed right-6 top-6 z-50 w-full max-w-sm transform rounded-2xl border border-red-200 bg-white p-4 shadow-2xl transition-all duration-300 ease-out animate-[slideIn_0.3s_ease-out]">
+          <div className="flex gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-lg">
+              🚨
+            </div>
+
+            <div>
+              <p className="text-sm font-bold text-slate-950">
+                Nueva alerta detectada
+              </p>
+              <p className="mt-1 text-sm text-slate-600">{toastMessage}</p>
+            </div>
+          </div>
         </div>
       )}
     </section>

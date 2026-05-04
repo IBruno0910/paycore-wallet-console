@@ -3,6 +3,9 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
+  Legend,
+  Line,
+  LineChart,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -11,6 +14,8 @@ import {
   YAxis,
 } from "recharts";
 import { useDashboard } from "./useDashboard";
+import { useTransfers } from "../transfers/useTransfers";
+import { Skeleton } from "../../components/feedback/skeleton";
 
 const COLORS = {
   completed: "#22c55e",   // verde
@@ -22,9 +27,10 @@ const COLORS = {
 
 export function DashboardPage() {
   const { data, loading, error, refetch } = useDashboard();
+  const { transfers: timelineTransfers } = useTransfers();
 
   if (loading) {
-    return <p className="text-slate-500">Cargando dashboard...</p>;
+    return <DashboardSkeleton />;
   }
 
   if (error) {
@@ -80,6 +86,31 @@ export function DashboardPage() {
     { name: "Webhooks", value: webhooks.deliveryRate },
   ];
 
+  const timelineData = Object.values(
+    timelineTransfers.reduce<Record<string, { date: string; total: number; volume: number }>>(
+      (acc, transfer) => {
+        const date = new Date(transfer.createdAt).toLocaleDateString("es-AR", {
+          day: "2-digit",
+          month: "2-digit",
+        });
+
+        if (!acc[date]) {
+          acc[date] = {
+            date,
+            total: 0,
+            volume: 0,
+          };
+        }
+
+        acc[date].total += 1;
+        acc[date].volume += transfer.amount;
+
+        return acc;
+      },
+      {}
+    )
+  );
+  
   return (
     <section className="space-y-8">
       <header className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
@@ -224,6 +255,65 @@ export function DashboardPage() {
             </ResponsiveContainer>
           </ChartCard>
         </div>
+        <div className="xl:col-span-2">
+          <ChartCard
+            title="Timeline de transferencias"
+            description="Evolución diaria de cantidad de transferencias y volumen operado."
+          >
+            <ResponsiveContainer width="100%" height={320}>
+              <LineChart data={timelineData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" />
+
+                <YAxis
+                  yAxisId="left"
+                  allowDecimals={false}
+                  tickFormatter={(value) => `${value}`}
+                />
+
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tickFormatter={(value) => formatCompactCurrency(value)}
+                />
+
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === "Volumen") {
+                      return [formatCurrency(Number(value)), name];
+                    }
+
+                    return [value, name];
+                  }}
+                />
+
+                <Legend />
+
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="total"
+                  stroke={COLORS.neutral}
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Cantidad"
+                />
+
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="volume"
+                  stroke={COLORS.completed}
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                  name="Volumen"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
       </div>
     </section>
   );
@@ -321,4 +411,37 @@ function formatCurrency(value: number) {
     style: "currency",
     currency: "ARS",
   }).format(value);
+}
+
+function formatCompactCurrency(value: number) {
+  return new Intl.NumberFormat("es-AR", {
+    notation: "compact",
+    compactDisplay: "short",
+  }).format(value);
+}
+
+function DashboardSkeleton() {
+  return (
+    <section className="space-y-8">
+      <Skeleton className="h-40 w-full rounded-3xl" />
+
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <Skeleton key={index} className="h-32" />
+        ))}
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <Skeleton key={index} className="h-28" />
+        ))}
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Skeleton className="h-96" />
+        <Skeleton className="h-96" />
+        <Skeleton className="h-96 xl:col-span-2" />
+      </div>
+    </section>
+  );
 }
