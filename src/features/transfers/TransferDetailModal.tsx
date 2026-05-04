@@ -30,7 +30,7 @@ export function TransferDetailModal({
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <InfoItem label="Monto" value={formatCurrency(transfer.amount)} />
-          <InfoItem label="Estado" value={<StatusBadge status={transfer.status} />} />
+          <InfoItem label="Estado" value={<StatusBadge status={transfer.status.toLowerCase() as TransferStatus} />} />
           <InfoItem
             label="Descripción"
             value={transfer.description || "Sin descripción"}

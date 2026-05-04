@@ -1,41 +1,52 @@
-import { useTransfers } from "./useTransfers";
-import type { TransferStatus, Transfer } from "./transfers.types";
-import { CreateTransferForm } from "./CreateTransferForm";
-import { useState, useEffect } from "react";
-import { TransferDetailModal } from "./TransferDetailModal";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Skeleton } from "../../components/feedback/skeleton";
+import { CreateTransferForm } from "./CreateTransferForm";
+import { TransferDetailModal } from "./TransferDetailModal";
+import type { Transfer, TransferStatus } from "./transfers.types";
+import { useTransfers } from "./useTransfers";
 
 export function TransfersPage() {
-  const { transfers, loading, error, refetch } = useTransfers();
-  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
+  const {
+    transfers,
+    pagination,
+    page,
+    setPage,
+    loading,
+    error,
+    refetch,
+  } = useTransfers();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(
+    null
+  );
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | TransferStatus>("all");
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [statusFilter, setStatusFilter] = useState<"all" | TransferStatus>(
+    "all"
+  );
 
-const filteredTransfers = transfers.filter((transfer) => {
-  const matchesSearch =
-    transfer.id.toLowerCase().includes(search.toLowerCase()) ||
-    transfer.description?.toLowerCase().includes(search.toLowerCase());
+  useEffect(() => {
+    const pageFromUrl = Number(searchParams.get("page")) || 1;
 
-  const normalizedStatus = transfer.status.toLowerCase() as TransferStatus;
+    if (pageFromUrl !== page) {
+      setPage(pageFromUrl);
+    }
+  }, [searchParams, page, setPage]);
 
-  const matchesStatus =
-    statusFilter === "all" || normalizedStatus === statusFilter;
+  const filteredTransfers = transfers.filter((transfer) => {
+    const normalizedStatus = transfer.status.toLowerCase() as TransferStatus;
 
-  return matchesSearch && matchesStatus;
-});
+    const matchesSearch =
+      transfer.id.toLowerCase().includes(search.toLowerCase()) ||
+      transfer.description?.toLowerCase().includes(search.toLowerCase());
 
-const totalPages = Math.ceil(filteredTransfers.length / pageSize);
+    const matchesStatus =
+      statusFilter === "all" || normalizedStatus === statusFilter;
 
-const paginatedTransfers = filteredTransfers.slice(
-  (page - 1) * pageSize,
-  page * pageSize
-);
-
-useEffect(() => {
-  setPage(1);
-}, [search, statusFilter]);
+    return matchesSearch && matchesStatus;
+  });
 
   if (loading) {
     return <TransfersSkeleton />;
@@ -100,9 +111,12 @@ useEffect(() => {
 
       {filteredTransfers.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <h3 className="text-lg font-semibold">No hay transferencias</h3>
+          <h3 className="text-lg font-semibold">
+            No hay transferencias para mostrar
+          </h3>
           <p className="mt-2 text-sm text-slate-500">
-            Todavía no se registraron transferencias en el sistema.
+            No encontramos transferencias que coincidan con los filtros
+            aplicados.
           </p>
         </div>
       ) : (
@@ -119,14 +133,12 @@ useEffect(() => {
             </thead>
 
             <tbody>
-              {paginatedTransfers.map((transfer) => {
-
-                return (
-                  <tr
-                    key={transfer.id}
-                    onClick={() => setSelectedTransfer(transfer)}
-                    className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
-                  >
+              {filteredTransfers.map((transfer) => (
+                <tr
+                  key={transfer.id}
+                  onClick={() => setSelectedTransfer(transfer)}
+                  className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
+                >
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">
                     {transfer.id.slice(0, 8)}...
                   </td>
@@ -140,45 +152,48 @@ useEffect(() => {
                   </td>
 
                   <td className="px-4 py-3">
-                    <StatusBadge status={transfer.status.toLowerCase() as TransferStatus} />
+                    <StatusBadge
+                      status={transfer.status.toLowerCase() as TransferStatus}
+                    />
                   </td>
 
                   <td className="px-4 py-3 text-slate-500">
                     {formatDate(transfer.createdAt)}
                   </td>
                 </tr>
-                );
-              })}
+              ))}
             </tbody>
           </table>
-          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-sm">
-            <p className="text-slate-500">
-              Página {page} de {totalPages || 1}
-            </p>
 
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPage((current) => Math.max(current - 1, 1))}
-                disabled={page === 1}
-                className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Anterior
-              </button>
+          {pagination && (
+            <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-sm">
+              <p className="text-slate-500">
+                Página {pagination.page} de {pagination.totalPages} ·{" "}
+                {pagination.total} transferencias
+              </p>
 
-              <button
-                onClick={() =>
-                  setPage((current) => Math.min(current + 1, totalPages))
-                }
-                disabled={page === totalPages || totalPages === 0}
-                className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Siguiente
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setSearchParams({ page: String(page - 1) })}
+                  disabled={page === 1}
+                  className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+
+                <button
+                  onClick={() => setSearchParams({ page: String(page + 1) })}
+                  disabled={page === pagination.totalPages}
+                  className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Siguiente
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-        
       )}
+
       {selectedTransfer && (
         <TransferDetailModal
           transfer={selectedTransfer}
@@ -230,7 +245,6 @@ function TransfersSkeleton() {
   return (
     <section className="space-y-6">
       <Skeleton className="h-20 w-full" />
-
       <Skeleton className="h-56 w-full" />
 
       <div className="rounded-2xl border border-slate-200 bg-white p-4">

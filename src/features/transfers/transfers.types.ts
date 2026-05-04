@@ -16,6 +16,7 @@ export type Transfer = {
 export type TransfersResponse = {
   success: boolean;
   data: Transfer[];
+  pagination: Pagination;
 };
 
 export type CreateTransferPayload = {
@@ -30,4 +31,11 @@ export type CreateTransferResponse = {
   success: boolean;
   message: string;
   data: Transfer;
+};
+
+export type Pagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 };
