@@ -6,7 +6,7 @@ Interfaz web de una plataforma tipo PSP (Payment Service Provider) para gestión
 
 ## 🚀 Demo
 
-👉 Próximamente desplegado en Vercel
+👉 https://paycore-wallet-console.vercel.app
 
 ---
 
