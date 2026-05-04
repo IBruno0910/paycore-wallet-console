@@ -10,6 +10,13 @@ Interfaz web de una plataforma tipo PSP (Payment Service Provider) para gestión
 
 ---
 
+## 🔑 Credenciales de prueba
+
+email: test@test.com  
+password: 123456
+
+---
+
 ## 🧠 Descripción
 
 Paycore Wallet Console es una aplicación frontend desarrollada en React que consume una API backend para simular un sistema financiero moderno.
