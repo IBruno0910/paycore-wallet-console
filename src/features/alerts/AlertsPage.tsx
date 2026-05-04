@@ -4,10 +4,25 @@ import { useAlerts } from "./useAlerts";
 export function AlertsPage() {
   const { alerts, smartAlerts, loading, error, refetch } = useAlerts();
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     setLastUpdated(new Date());
   }, [alerts, smartAlerts]);
+
+  useEffect(() => {
+    const totalAlerts = alerts.length + smartAlerts.length;
+
+    if (totalAlerts === 0) return;
+
+    setToastMessage(`Sistema monitoreado: ${totalAlerts} alertas activas`);
+
+    const timeout = setTimeout(() => {
+      setToastMessage("");
+    }, 4000);
+
+    return () => clearTimeout(timeout);
+  }, [alerts.length, smartAlerts.length]);
 
   if (loading) return <p className="text-slate-500">Cargando alertas...</p>;
 
@@ -68,7 +83,13 @@ export function AlertsPage() {
           ))}
         </div>
       </div>
+      {toastMessage && (
+        <div className="fixed right-6 top-6 z-50 rounded-2xl border border-slate-200 bg-slate-950 px-5 py-4 text-sm font-medium text-white shadow-xl">
+          {toastMessage}
+        </div>
+      )}
     </section>
+    
   );
 }
 
