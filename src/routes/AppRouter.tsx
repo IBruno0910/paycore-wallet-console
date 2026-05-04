@@ -7,6 +7,7 @@ import { TransfersPage } from "../features/transfers/TransfersPage";
 import { TransactionsPage } from "../features/transactions/TransactionsPage";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { paths } from "./paths";
+import { AlertsPage } from "../features/alerts/AlertsPage";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
             path: paths.transactions,
             element: <TransactionsPage />,
           },
+          {
+            path: "/alerts",
+            element: <AlertsPage />,
+          }
         ],
       },
     ],

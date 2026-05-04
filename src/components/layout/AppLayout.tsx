@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { paths } from "../../routes/paths";
 import { clearAuthSession } from "../../features/auth/auth.storage";
 
@@ -18,33 +18,11 @@ export function AppLayout() {
         <p className="mt-1 text-sm text-slate-500">Wallet Console</p>
 
         <nav className="mt-8 flex flex-col gap-2 text-sm">
-          <Link
-            to={paths.dashboard}
-            className="rounded-lg px-3 py-2 hover:bg-slate-100"
-          >
-            Dashboard
-          </Link>
-
-          <Link
-            to={paths.accounts}
-            className="rounded-lg px-3 py-2 hover:bg-slate-100"
-          >
-            Cuentas
-          </Link>
-
-          <Link
-            to={paths.transfers}
-            className="rounded-lg px-3 py-2 hover:bg-slate-100"
-          >
-            Transferencias
-          </Link>
-
-          <Link
-            to={paths.transactions}
-            className="rounded-lg px-3 py-2 hover:bg-slate-100"
-          >
-            Movimientos
-          </Link>
+          <SidebarLink to="/">Dashboard</SidebarLink>
+          <SidebarLink to="/accounts">Cuentas</SidebarLink>
+          <SidebarLink to="/transfers">Transferencias</SidebarLink>
+          <SidebarLink to="/transactions">Movimientos</SidebarLink>
+          <SidebarLink to="/alerts">Alertas</SidebarLink>
         </nav>
 
         {/* Logout */}
@@ -62,4 +40,22 @@ export function AppLayout() {
       </main>
     </div>
   );
+  
+  function SidebarLink({ to, children }: { to: string; children: React.ReactNode }) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        `rounded-xl px-3 py-2 font-medium transition ${
+          isActive
+            ? "bg-slate-950 text-white"
+            : "text-slate-700 hover:bg-slate-100"
+        }`
+      }
+    >
+      {children}
+    </NavLink>
+  );
 }
+}
+

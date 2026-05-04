@@ -12,10 +12,20 @@ import {
 } from "recharts";
 import { useDashboard } from "./useDashboard";
 
+const COLORS = {
+  completed: "#22c55e",   // verde
+  failed: "#ef4444",      // rojo
+  pending: "#f59e0b",     // amarillo
+  neutral: "#0f172a",     // slate-900
+  light: "#94a3b8",       // slate-400
+};
+
 export function DashboardPage() {
   const { data, loading, error, refetch } = useDashboard();
 
-  if (loading) return <p className="text-slate-500">Cargando dashboard...</p>;
+  if (loading) {
+    return <p className="text-slate-500">Cargando dashboard...</p>;
+  }
 
   if (error) {
     return (
@@ -44,7 +54,7 @@ export function DashboardPage() {
     { name: "Completadas", value: transfers.completedTransfers },
     { name: "Fallidas", value: transfers.failedTransfers },
     {
-      name: "Otras",
+      name: "Pendientes/Otras",
       value:
         transfers.totalTransfers -
         transfers.completedTransfers -
@@ -65,108 +75,242 @@ export function DashboardPage() {
   ];
 
   const rateData = [
-    { name: "Éxito transfers", value: transfers.successRate },
-    { name: "Fallos transfers", value: transfers.failedRate },
-    { name: "Delivery webhooks", value: webhooks.deliveryRate },
+    { name: "Éxito", value: transfers.successRate },
+    { name: "Fallos", value: transfers.failedRate },
+    { name: "Webhooks", value: webhooks.deliveryRate },
   ];
 
   return (
     <section className="space-y-8">
-      <header>
-        <h2 className="text-2xl font-bold">Dashboard</h2>
-        <p className="mt-2 text-slate-500">
-          Resumen operativo de transferencias, volumen y webhooks.
-        </p>
+      <header className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-center">
+          <div>
+            <div className="inline-flex rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              PSP Operations Console
+            </div>
+
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-slate-950">
+              Dashboard operativo
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+              Monitoreo de transferencias, volumen procesado, performance de
+              webhooks y salud general de la billetera.
+            </p>
+          </div>
+
+          <div className="rounded-2xl bg-slate-950 px-6 py-4 text-white">
+            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+              Volumen procesado
+            </p>
+            <p className="mt-2 text-2xl font-bold">
+              {formatCurrency(transfers.totalTransferredVolume)}
+            </p>
+          </div>
+        </div>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card title="Total transferencias" value={transfers.totalTransfers} />
-        <Card title="Completadas" value={transfers.completedTransfers} />
-        <Card title="Fallidas" value={transfers.failedTransfers} />
-        <Card
-          title="Volumen total"
-          value={formatCurrency(transfers.totalTransferredVolume)}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          title="Transferencias"
+          value={transfers.totalTransfers}
+          description="Operaciones totales registradas"
         />
-        <Card title="Tasa de éxito" value={`${transfers.successRate}%`} />
-        <Card title="Tasa de fallos" value={`${transfers.failedRate}%`} />
-        <Card title="Eventos webhook" value={webhooks.totalWebhookEvents} />
-        <Card title="Delivery webhook" value={`${webhooks.deliveryRate}%`} />
+        <MetricCard
+          title="Completadas"
+          value={transfers.completedTransfers}
+          description="Transferencias procesadas con éxito"
+        />
+        <MetricCard
+          title="Fallidas"
+          value={transfers.failedTransfers}
+          description="Operaciones rechazadas o fallidas"
+          variant="danger"
+        />
+        <MetricCard
+          title="Eventos webhook"
+          value={webhooks.totalWebhookEvents}
+          description="Eventos emitidos por el sistema"
+        />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <RateCard
+          title="Tasa de éxito"
+          value={transfers.successRate}
+          helper="Transferencias completadas"
+        />
+        <RateCard
+          title="Tasa de fallos"
+          value={transfers.failedRate}
+          helper="Transferencias fallidas"
+          variant="danger"
+        />
+        <RateCard
+          title="Delivery webhooks"
+          value={webhooks.deliveryRate}
+          helper="Eventos entregados correctamente"
+        />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <ChartCard title="Estado de transferencias">
-          <ResponsiveContainer width="100%" height={280}>
+        <ChartCard
+          title="Distribución de transferencias"
+          description="Comparación entre operaciones completadas, fallidas y pendientes."
+        >
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={transferStatusData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={95}
+                outerRadius={100}
                 label
               >
-                {transferStatusData.map((entry) => (
-                  <Cell key={entry.name} />
-                ))}
+                <Cell fill={COLORS.completed} />
+                <Cell fill={COLORS.failed} />
+                <Cell fill={COLORS.pending} />
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Estado de webhooks">
-          <ResponsiveContainer width="100%" height={280}>
+        <ChartCard
+          title="Distribución de webhooks"
+          description="Estado operativo de eventos enviados a integraciones externas."
+        >
+          <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={webhookData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={95}
+                outerRadius={100}
                 label
               >
-                {webhookData.map((entry) => (
-                  <Cell key={entry.name} />
-                ))}
+                <Cell fill={COLORS.completed} />
+                <Cell fill={COLORS.failed} />
+                <Cell fill={COLORS.light} />
               </Pie>
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Tasas operativas">
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={rateData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis domain={[0, 100]} />
-              <Tooltip />
-              <Bar dataKey="value" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        <div className="xl:col-span-2">
+          <ChartCard
+            title="Tasas operativas"
+            description="Resumen porcentual de éxito, fallos y delivery de webhooks."
+          >
+            <ResponsiveContainer width="100%" height={320}>
+              <BarChart data={rateData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis domain={[0, 100]} />
+                <Tooltip />
+                <Bar dataKey="value" radius={[10, 10, 0, 0]}>
+                  {rateData.map((entry) => {
+                    let color = COLORS.neutral;
+
+                    if (entry.name === "Éxito") color = COLORS.completed;
+                    if (entry.name === "Fallos") color = COLORS.failed;
+                    if (entry.name === "Webhooks") color = COLORS.light;
+
+                    return <Cell key={entry.name} fill={color} />;
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </div>
       </div>
     </section>
   );
 }
 
-function Card({ title, value }: { title: string; value: string | number }) {
+function MetricCard({
+  title,
+  value,
+  description,
+  variant = "default",
+}: {
+  title: string;
+  value: string | number;
+  description: string;
+  variant?: "default" | "danger";
+}) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5">
-      <p className="text-sm text-slate-500">{title}</p>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
-    </div>
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="text-sm font-medium text-slate-500">{title}</p>
+      <p
+        className={`mt-3 text-3xl font-bold ${
+          variant === "danger" ? "text-red-600" : "text-slate-950"
+        }`}
+      >
+        {value}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-slate-500">{description}</p>
+    </article>
+  );
+}
+
+function RateCard({
+  title,
+  value,
+  helper,
+  variant = "default",
+}: {
+  title: string;
+  value: number;
+  helper: string;
+  variant?: "default" | "danger";
+}) {
+  return (
+    <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium text-slate-500">{title}</p>
+        <span
+          className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            variant === "danger"
+              ? "bg-red-50 text-red-700"
+              : "bg-green-50 text-green-700"
+          }`}
+        >
+          {value}%
+        </span>
+      </div>
+
+      <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full ${
+            variant === "danger" ? "bg-red-500" : "bg-slate-950"
+          }`}
+          style={{ width: `${Math.min(value, 100)}%` }}
+        />
+      </div>
+
+      <p className="mt-3 text-xs text-slate-500">{helper}</p>
+    </article>
   );
 }
 
 function ChartCard({
   title,
+  description,
   children,
 }: {
   title: string;
+  description: string;
   children: React.ReactNode;
 }) {
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-6">
-      <h3 className="text-lg font-semibold">{title}</h3>
+    <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div>
+        <h3 className="text-lg font-semibold text-slate-950">{title}</h3>
+        <p className="mt-1 text-sm text-slate-500">{description}</p>
+      </div>
+
       <div className="mt-6">{children}</div>
     </article>
   );
