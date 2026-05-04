@@ -9,6 +9,8 @@ export type Transfer = {
   accountId?: string;
   createdAt: string;
   updatedAt?: string;
+  sourceAccountId?: string;
+  destinationAccountId?: string;
 };
 
 export type TransfersResponse = {

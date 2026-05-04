@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { getApiErrorMessage } from "../../api/api-error";
+import { useAccounts } from "../accounts/useAccounts";
 import { createTransfer } from "./transfers.api";
 
 type CreateTransferFormProps = {
@@ -7,16 +8,12 @@ type CreateTransferFormProps = {
 };
 
 export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
+  const { accounts, loading: loadingAccounts, error: accountsError } = useAccounts();
+
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
-
-  const [sourceAccountId] = useState(
-    "cc6c9f19-c54f-4291-be93-a919e23e8daf"
-  );
-  const [destinationAccountId] = useState(
-    "0ddf1be0-d228-4f17-a264-89c1232f9583"
-  );
-
+  const [sourceAccountId, setSourceAccountId] = useState("");
+  const [destinationAccountId, setDestinationAccountId] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -28,6 +25,21 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
     setSuccessMessage("");
 
     const numericAmount = Number(amount);
+
+    if (!sourceAccountId) {
+      setError("Seleccioná una cuenta de origen.");
+      return;
+    }
+
+    if (!destinationAccountId) {
+      setError("Seleccioná una cuenta de destino.");
+      return;
+    }
+
+    if (sourceAccountId === destinationAccountId) {
+      setError("La cuenta de origen y destino no pueden ser la misma.");
+      return;
+    }
 
     if (!numericAmount || numericAmount <= 0) {
       setError("El monto debe ser mayor a 0.");
@@ -53,11 +65,12 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
       setAmount("");
       setDescription("");
       setSuccessMessage("Transferencia creada correctamente.");
-        await onCreated();
 
-        setTimeout(() => {
-          setSuccessMessage("");
-        }, 4000);
+      await onCreated();
+
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 4000);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -69,10 +82,58 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
     <section className="rounded-2xl border border-slate-200 bg-white p-6">
       <h3 className="text-lg font-semibold">Nueva transferencia</h3>
       <p className="mt-1 text-sm text-slate-500">
-        Creá una transferencia de prueba contra la API Paycore.
+        Creá una transferencia entre cuentas reales de Paycore.
       </p>
 
-      <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-3">
+      {accountsError && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          No pudimos cargar las cuentas: {accountsError}
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
+        <div>
+          <label className="text-sm font-medium">Cuenta origen</label>
+          <select
+            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+            value={sourceAccountId}
+            onChange={(event) => setSourceAccountId(event.target.value)}
+            disabled={loadingAccounts}
+          >
+            <option value="">
+              {loadingAccounts ? "Cargando cuentas..." : "Seleccionar cuenta"}
+            </option>
+
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.alias} · {account.currency} · Disponible:{" "}
+                {formatCurrency(account.availableBalance)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Cuenta destino</label>
+          <select
+            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+            value={destinationAccountId}
+            onChange={(event) => setDestinationAccountId(event.target.value)}
+            disabled={loadingAccounts}
+          >
+            <option value="">
+              {loadingAccounts ? "Cargando cuentas..." : "Seleccionar cuenta"}
+            </option>
+
+            {accounts.map((account) => (
+              <option key={account.id} value={account.id}>
+                {account.alias} · {account.currency} · Disponible:{" "}
+                {formatCurrency(account.availableBalance)}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label className="text-sm font-medium">Monto</label>
           <input
@@ -96,28 +157,35 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
           />
         </div>
 
-        <div className="flex items-end">
+        <div className="md:col-span-2">
           <button
             className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
             type="submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || loadingAccounts}
           >
             {isSubmitting ? "Creando..." : "Crear transferencia"}
           </button>
         </div>
       </form>
 
-      {successMessage && (
-        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
-          {successMessage}
-        </div>
-      )}
-
       {error && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {error}
         </div>
       )}
+
+      {successMessage && (
+        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700">
+          {successMessage}
+        </div>
+      )}
     </section>
   );
+}
+
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("es-AR", {
+    style: "currency",
+    currency: "ARS",
+  }).format(value);
 }

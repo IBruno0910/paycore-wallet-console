@@ -1,9 +1,14 @@
 import { useTransfers } from "./useTransfers";
-import type { TransferStatus } from "./transfers.types";
+import type { TransferStatus, Transfer } from "./transfers.types";
 import { CreateTransferForm } from "./CreateTransferForm";
+import { useState } from "react";
+import { TransferDetailModal } from "./TransferDetailModal";
+
 
 export function TransfersPage() {
   const { transfers, loading, error, refetch } = useTransfers();
+
+  const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
 
   if (loading) {
     return <p className="text-slate-500">Cargando transferencias...</p>;
@@ -60,7 +65,11 @@ export function TransfersPage() {
 
             <tbody>
               {transfers.map((transfer) => (
-                <tr key={transfer.id} className="border-t border-slate-100">
+                <tr
+                  key={transfer.id}
+                  onClick={() => setSelectedTransfer(transfer)}
+                  className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
+                >
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">
                     {transfer.id.slice(0, 8)}...
                   </td>
@@ -85,6 +94,12 @@ export function TransfersPage() {
             </tbody>
           </table>
         </div>
+      )}
+      {selectedTransfer && (
+        <TransferDetailModal
+          transfer={selectedTransfer}
+          onClose={() => setSelectedTransfer(null)}
+        />
       )}
     </section>
   );
