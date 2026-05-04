@@ -1,14 +1,41 @@
 import { useTransfers } from "./useTransfers";
 import type { TransferStatus, Transfer } from "./transfers.types";
 import { CreateTransferForm } from "./CreateTransferForm";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TransferDetailModal } from "./TransferDetailModal";
 
 
 export function TransfersPage() {
   const { transfers, loading, error, refetch } = useTransfers();
-
   const [selectedTransfer, setSelectedTransfer] = useState<Transfer | null>(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | TransferStatus>("all");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
+const filteredTransfers = transfers.filter((transfer) => {
+  const matchesSearch =
+    transfer.id.toLowerCase().includes(search.toLowerCase()) ||
+    transfer.description?.toLowerCase().includes(search.toLowerCase());
+
+  const normalizedStatus = transfer.status.toLowerCase() as TransferStatus;
+
+  const matchesStatus =
+    statusFilter === "all" || normalizedStatus === statusFilter;
+
+  return matchesSearch && matchesStatus;
+});
+
+const totalPages = Math.ceil(filteredTransfers.length / pageSize);
+
+const paginatedTransfers = filteredTransfers.slice(
+  (page - 1) * pageSize,
+  page * pageSize
+);
+
+useEffect(() => {
+  setPage(1);
+}, [search, statusFilter]);
 
   if (loading) {
     return <p className="text-slate-500">Cargando transferencias...</p>;
@@ -43,7 +70,35 @@ export function TransfersPage() {
 
       <CreateTransferForm onCreated={refetch} />
 
-      {transfers.length === 0 ? (
+      <div className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 md:grid-cols-2">
+        <div>
+          <label className="text-sm font-medium">Buscar</label>
+          <input
+            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar por ID o descripción"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium">Estado</label>
+          <select
+            className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none focus:border-slate-900"
+            value={statusFilter}
+            onChange={(event) =>
+              setStatusFilter(event.target.value as "all" | TransferStatus)
+            }
+          >
+            <option value="all">Todos</option>
+            <option value="pending">Pendientes</option>
+            <option value="completed">Completadas</option>
+            <option value="failed">Fallidas</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredTransfers.length === 0 ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
           <h3 className="text-lg font-semibold">No hay transferencias</h3>
           <p className="mt-2 text-sm text-slate-500">
@@ -64,12 +119,14 @@ export function TransfersPage() {
             </thead>
 
             <tbody>
-              {transfers.map((transfer) => (
-                <tr
-                  key={transfer.id}
-                  onClick={() => setSelectedTransfer(transfer)}
-                  className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
-                >
+              {paginatedTransfers.map((transfer) => {
+
+                return (
+                  <tr
+                    key={transfer.id}
+                    onClick={() => setSelectedTransfer(transfer)}
+                    className="cursor-pointer border-t border-slate-100 hover:bg-slate-50"
+                  >
                   <td className="px-4 py-3 font-mono text-xs text-slate-500">
                     {transfer.id.slice(0, 8)}...
                   </td>
@@ -83,17 +140,44 @@ export function TransfersPage() {
                   </td>
 
                   <td className="px-4 py-3">
-                    <StatusBadge status={transfer.status} />
+                    <StatusBadge status={transfer.status.toLowerCase() as TransferStatus} />
                   </td>
 
                   <td className="px-4 py-3 text-slate-500">
                     {formatDate(transfer.createdAt)}
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
+          <div className="flex items-center justify-between border-t border-slate-200 px-4 py-3 text-sm">
+            <p className="text-slate-500">
+              Página {page} de {totalPages || 1}
+            </p>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((current) => Math.max(current - 1, 1))}
+                disabled={page === 1}
+                className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Anterior
+              </button>
+
+              <button
+                onClick={() =>
+                  setPage((current) => Math.min(current + 1, totalPages))
+                }
+                disabled={page === totalPages || totalPages === 0}
+                className="rounded-lg border border-slate-300 px-3 py-2 font-medium disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
         </div>
+        
       )}
       {selectedTransfer && (
         <TransferDetailModal

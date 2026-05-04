@@ -17,6 +17,7 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,11 +52,17 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
       return;
     }
 
+    setShowConfirmation(true);
+  }
+
+    async function handleConfirmTransfer() {
     setIsSubmitting(true);
+    setError("");
+    setSuccessMessage("");
 
     try {
       await createTransfer({
-        amount: numericAmount,
+        amount: Number(amount),
         description: description.trim(),
         sourceAccountId,
         destinationAccountId,
@@ -64,6 +71,10 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
 
       setAmount("");
       setDescription("");
+      setSourceAccountId("");
+      setDestinationAccountId("");
+      setShowConfirmation(false);
+
       setSuccessMessage("Transferencia creada correctamente.");
 
       await onCreated();
@@ -179,6 +190,60 @@ export function CreateTransferForm({ onCreated }: CreateTransferFormProps) {
           {successMessage}
         </div>
       )}
+
+      {showConfirmation && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <h3 className="text-xl font-bold">Confirmar transferencia</h3>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Revisá los datos antes de crear la transferencia.
+            </p>
+
+            <div className="mt-6 space-y-3 rounded-xl bg-slate-50 p-4 text-sm">
+              <p>
+                <span className="font-medium text-slate-500">Monto:</span>{" "}
+                <strong>{formatCurrency(Number(amount))}</strong>
+              </p>
+
+              <p>
+                <span className="font-medium text-slate-500">Descripción:</span>{" "}
+                <strong>{description}</strong>
+              </p>
+
+              <p>
+                <span className="font-medium text-slate-500">Cuenta origen:</span>{" "}
+                <strong>{sourceAccountId}</strong>
+              </p>
+
+              <p>
+                <span className="font-medium text-slate-500">Cuenta destino:</span>{" "}
+                <strong>{destinationAccountId}</strong>
+              </p>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setShowConfirmation(false)}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmTransfer}
+                className="rounded-xl bg-slate-950 px-4 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Confirmando..." : "Confirmar transferencia"}
+              </button>
+            </div>
+          </div>
+        </div>
+)}
     </section>
   );
 }
