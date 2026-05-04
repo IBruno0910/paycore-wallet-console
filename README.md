@@ -12,8 +12,8 @@ Interfaz web de una plataforma tipo PSP (Payment Service Provider) para gestión
 
 ## 🔑 Credenciales de prueba
 
-email: test@test.com  
-password: 123456
+email: ignacio@example.com  
+password: Password123
 
 ---
 
